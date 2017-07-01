@@ -1,0 +1,1 @@
+slim-redux-react-beta
