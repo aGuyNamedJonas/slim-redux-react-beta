@@ -13,7 +13,7 @@ This is the official repository for the beta testing phase of `slim-redux-react 
 * Get down and dirty with the example app :)
 
 ## Next Steps
-▶︎ Read the introduction (scroll down)
+▶︎ Read the introduction (scroll down)  
 ▶︎ Join the discussion on our discord server: [https://discord.gg/skqwunW](https://discord.gg/skqwunW)  
 ▶︎ **Report bugs** by submitting an issue in the `slim-redux-redux` repository [here](https://github.com/aGuyNamedJonas/slim-redux-react)  
 ▶︎ Test out `slim-redux-react` in your own projects: `npm i --save slim-redux-react@beta`  
@@ -22,7 +22,7 @@ This is the official repository for the beta testing phase of `slim-redux-react 
 ----
 
 ## Introduction
-So why `slim-redux-react`/ `slim-redux`?  
+Why `slim-redux-react`/ `slim-redux`?  
 In two words: Less boilerplate.
 
 While I admire the simplicity of the [core concepts of redux](http://redux.js.org/docs/introduction/CoreConcepts.html), I always found working with redux in react to be very overhead-heavy and at times incredibly confusing.  
@@ -42,8 +42,9 @@ Read on for a detailled **description of the API**, or scroll down to the **exam
 ### API Reference (slim-redux-react)
 
 ### createSlimReduxStore(initialState, options)
-**Description:** Creates and initializes the slim-redux store which is actually a redux store injected with some slim-redux functionality.   
-You can use this in your react app like you normally would, using the `<Provider/>` component (see below).
+**Description:** Creates and initializes the slim-redux store which is actually a redux store injected with some slim-redux functionality.
+
+To provide your react components access to this store, use the `<Provider/>` component (see below).
 
 **Parameters:**
 - `initialState`: The initial state of the store
@@ -96,11 +97,11 @@ ReactDOM.render(
 ### connect(component, stuff): containerComponent
 *(pka `slimReduxReact()`)*  
 
-**Description:** connects a visual react component to slim-redux and returns the containerized component. This function had the name `slimReduxReact()` but was renamed to `connect()` to avoid introducing too many new names.
+**Description:** connects a visual react component to `slim-redux` and returns the containerized component. This function had the name `slimReduxReact()` but was renamed to `connect()` to avoid introducing too many new names.
 
 **Parameters:**
 * `component`: The react component to be connected to slim-redux
-* `stuff`: An object which contains the subscriptions, caluclations, change triggers, and async change triggers for this component
+* `stuff`: An object which contains the subscriptions, caluclations, change triggers, and async change triggers for this component. The key names of this object are the prop names under which your component can use the respective subscriptions, change triggers, etc.
 
 **Returns:**  
 The containerized react component that will get subscriptions, calculations, change triggers and async change triggers as props
@@ -119,22 +120,16 @@ export const TodoList = (props) => ( /* ... */ );
 export default connect(TodoList, { visibleTodos, addTodo });
 ```
 
-**HIER WEITERMACHEN!**
-
 ### changeTrigger(actionType, reducer, [focusString])
-**Description:** Creates a change trigger which conceptually is a side-effect free modification of the state. The beauty of this is action type and reducer function in one statement. Calling `changeTrigger()` will return a change trigger function which you can call to trigger this change in your state.  
+**Description:** Creates a change trigger which should always represent a side-effect free state modification. The beauty of this is action type and reducer function in one statement. Calling `changeTrigger()` will return a change trigger function which you can call to trigger this change in your state.  
 
 You can define custom arguments which will be accepted by your change trigger function.
 
 Add an optional focus string (a subscription-style string, Example: `'state.counter'`) to only have your reducer function modify a part of your state.
 
 **Parameters:**  
-* `actionType`: Action type of your string, this is what you will see in your redux devtools.
-* `reducer`: Function which modifies the state - this decribes what your change trigger will do to the state. The last argument of this function will receive the state on invocation. So generally this will the `state`, but if you use the optional `focusString`, this will be just the part of the state that the focus string points to.
-
-**Returns:**  
-Change trigger function that has the signature of the reducer function (minus the last argument which will receive the state) and will dispatch the change trigger's action, resulting in the internal `slim-redux` reducer to execute your reducer function.  
-When called this will return an object containing the action dispatched and the new version of the state.
+* `actionType`: Action type of your change trigger, this is what you will see in your redux devtools.
+* `reducer`: Function which modifies the state - this decribes how your change trigger will modify the state, given the change trigger function arguments. The last argument of this function will receive the state on invocation. So generally this will be the `state`, but if you use the optional `focusString`, this will be just the part of the state that the focus string points to.
 
 **Example:**  
 ```javascript
@@ -156,7 +151,11 @@ import { addTodo } from './changes/todo';
 
 const store = createSlimReduxStore({ todos: [], stuff: 'state' });
 
-const TodoList = ({addTodo}) => ( /*...*/ );
+const TodoList = ({addTodo}) => (
+  <div>
+    <button onClick={e => props.addTodo('NEW TODO'))}>Add task 'NEW TODO'</button>
+  </div>
+);
 
 const TodoListContainer = connect(TodoList, { addTodo });
 
@@ -202,18 +201,14 @@ const App = () => (
 ReactDOM.render(<App />, document.getElementById('root'));
 ```
 
-### asyncChangeTrigger(changeTriggers, triggerFunction, [{store: storeInstance}])
-**Description:** Change triggers are always synchronous, as is the norm in redux (store.dispatch() and the reducers are actually synchronous). To allow for asynchronous code to take care of state changes, in slim-redux asyncChangeTrigger() is provided. The name might be slightly confusing at first, but the idea is that your async code gets provided with change triggers (synchronous) which you can call out of your async callbacks / promises etc. Async change triggers are of course not guaranteed to actually make a state change, but when they do, it's through a regular, synchronous change trigger.  
-Note that this does not have an action type, as only change triggers have an action type. This is to make sure that whenever you see an action in your redux devtools, they actually represent a state change, not any pseudo actions that are only there to trigger async code.
+### asyncChangeTrigger(changeTriggers, triggerFunction)
+**Description:** Async change triggers allow you to use existing change triggers in asynchronous code. The `triggerFunction` will receive an object as the last argument which contains the state and all the change triggers.  
+
+Note that async change triggers don't have action types, as they rely on the change triggers passed in for state modifications.
 
 **Parameters:**  
-* `changeTriggers`: Object which contains all the change triggers that this async change trigger needs. Can be regular change triggers or async change triggers. Object keys are the names under which the change triggers will be available inside the `triggerFunction`, the value are the change triggers themselves. It's recommended to use the ES6 shorthand - **Example**:   
-`export const addTodoServerSync = asynChangeTrigger({ addTodo, addTodoSuccess, addTodoFailed }, (name) => { /* ... */ })`
-* `triggerFunction`: A function which receives all the parameters that this async change trigger needs, and will have access to the state and to the change triggers from the first argument. This is called the trigger function, because unlike in the `changeTrigger()` API call, this function is not a reducer. The only way for it to change state is to invoke change triggers. **The signature of this function can be empty!**
-* `(optional) Object with store instance in it` In case you set the `disableGlobalStore=true` option when you invoked `createSlimReduxStore()` you have to pass the store instance to your change triggers manually. When you pass this in for asyncChangeTrigger it will automatically be set for the change triggers called from within.
-
-**Returns:**  
-A change trigger function which can be called, passing in the parameters that the `triggerFunction` expects. When calling the trigger function, it will return a promise (since hoChangeTrigger are rather asynchronous in nature) which contains all the actions dispatched and access to the state.
+* `changeTriggers`: Object which contains all the change triggers that you want to use in this async change trigger. 
+* `triggerFunction`: The trigger function which can have custom arguments. Note that the last argument of this function will receive an object, containing the state and the passed in change triggers.
 
 **Example:**  
 ```javascript
@@ -222,78 +217,129 @@ import { asyncChangeTrigger } from 'slim-redux-react';
 import { addTodo, addTodoSuccess } from '../changes/todo';
 
 // First argument is a change trigger mapping like in slimReduxReact()
-export const addTodoServerSync = asyncChangeTrigger({ addTodo, addTodoSuccess }, (name) => {
+export const addTodoServerSync = asyncChangeTrigger({ addTodo, addTodoSuccess }, (name, ct) => {
   // Notice how we have access to the state inside of the reducer function
-  const newId = state.todos.filter((max, value) => Math.max(max, value), 0) + 1;
+  const newId = ct.state.todos.filter((max, value) => Math.max(max, value), 0) + 1;
 
   // Call our first change trigger (also notice how change triggers now take arguments!)
-  addTodo(newId, title);
+  ct.addTodo(newId, title);
 
   fetch(`/v1/todos`, {
     method: 'post',
     /* ... */
   ).then(data => {
     // Calling our second change trigger to confirm we added the task on the server
-    addTodoConfirmed(newId);
+    ct.addTodoConfirmed(newId);
   })
 });
 
 // main.js
-import { createSlimReduxStore } from 'slim-redux'
+import { createSlimReduxStore } from 'slim-redux-react'
 import { addTodoServerSync } from './async/todo';
 
-const store = createSlimReduxStore({todos:[]});
+const store = createSlimReduxStore({ todos: [], stuff: 'state' });
 
-// Notice how we don't need any sort of registration here.
-// We just call this asynchronous change trigger and pass it the name
-// of our new todo. The rest is taken care of by the async change
-// trigger and will lead to a new todo which is persitetd to the server
-addTodoServerSync('Get Milk');
-```
+const TodoList = ({addTodo}) => (
+  <div>
+    <button onClick={e => props.addTodo('NEW TODO'))}>Add task 'NEW TODO'</button>
+  </div>
+);
 
-### subscription(subscriptionString, changeCallback, [{store: storeInstance}])  
-**Description:** Function which lets you react to state changing in very specific areas (so whatever you subscribed to). The changeCallback is called anytime the subscribed to part of the state changes, and will receive the subscribed to value and the state as arguments.  
-This API function is only neccessary when exclusively working with slim-redux. In slim-redux-react, this function is used internally to provide subscriptions.
+const TodoListContainer = connect(TodoList, { addTodo: addTodoServerSync });
 
-**Prameters:**  
-* `subscriptionString`: String which addresses (a part of) the state tree. For example: `state.todos.filter`.
-* `changeCallback`: This is called anytime the subscribed-to part of the state changes. The callback will receive the subscribed to part of the state and the state itself as arguments.
-* `(optional) storeInstance`: With this parameter you can specify which store instance to register this calculation with. Default is the global instance.
+const App = () => (
+    <Provider store={store}>
+        <TodoListContainer/>
+    </Provider>
+);
 
-**Returns:**  
-True, if subscription was successfully created, throws exception when the subscription string did not match anything in the state or a store instance could not be found.
-
-### calculation(calcFunction, subscriptionMap, [changeCallback], [{store: storeInstance}])
-**Description:** Calculations are a great way to compute derived values off of the state. calculation() returns the computed value and internally uses redux-reselect, so the value you get might be cached which makes this efficient.  
-Also you can pass in a callback into calculation() which gets invoked AFTER any of the subscribed-to values has changed and the new result has been computed. Like that this is a powerful way to react to state changes in a very specific and granular way.
-
-**Parameters:**  
-* `calcFunction`: Function which takes the subscriptions as an argument and then returns a calculated value off of these subscriptions. Anytime any of these subscriptions change, the `calcFunction` is re-invoked.
-* `subscriptionMap`: An object mapping a part of the state to values that will be passed in to the `calcFunction` as arguments.
-* `changeCallback`: Optional callback which is called whenever the calculation was retriggered. Function receives whatever the calculation returns as arguments and the state as the last argument
-* `(optional) storeInstance`: With this parameter you can specify which store instance to register this calculation with. Default is the global instance.
-
-**Returns:**  
-The calculated value. As this is based on redux-reselect, calling a calculation might very well return a cached result - it does not recalculate if it doesn't have to. Like that this is also a very efficient way to access computed values that are derived from the state. Throws error whenever one of the subscriptions could not be found inside the state.
-
-**Example:**  
-```javascript
-import { calculation } from 'slim-redux';
-
-const todos = 'state.todos';
-const filter = 'state.todos.visbilityFilter';
-
-export const visibleTodos = calculation((todos, filter) => (
-  todos.filter(todo => (
-    filter === 'all' ||
-    filter === 'open' && !todo.checked ||
-    filter === 'done' && todo.checked
-  ));
-), { todos, filter });
+ReactDOM.render(<App />, document.getElementById('root'));
 ```
 
 ### Simple Example
 This is actually just the `src/index.js` file that you also find in this repository. Imagine how slim this is without the comments though! ❤️
 
 ```javascript
+import React from 'react';
+import ReactDOM from 'react-dom';
+
+import { createSlimReduxStore, connect, subscription, calculation, changeTrigger, asyncChangeTrigger, Provider } from 'slim-redux-react';
+
+const store = createSlimReduxStore(
+    { counter: 1, stuff: 'state' }, 
+    { middleware: window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__() }
+);
+
+
+/*
+    subscription(subscriptionString)
+    Subscription to a part of your state. Will update when that part of the state changes.
+*/ 
+const counter      = subscription('state.counter'),
+      currentState = subscription('state');
+
+/*
+    changeTrigger(actionType, reducerFunction [, focusString])
+    The magic of slim-redux-react: Combine your action types and reducer code into a single statement!
+    You can use an optional focus string which lets you choose which part of the state youw ant to modify.
+*/
+const inc = changeTrigger('INCREMENT_COUNTER', (value, counter) => counter + value, 'state.counter'),
+      dec = changeTrigger('DECREMENT_COUNTER', (value, state) => ({ ...state, counter: state.counter - value }) );
+
+/*
+    asyncChangeTrigger(changeTriggers, changeTriggerFunction)
+    The higher order concept to change triggers: Reuse change triggers in async code.
+    This could be a network request for example, here exemplified through a timeout.
+*/
+const asyncInc = asyncChangeTrigger({ inc }, (value, ct) => {
+    setTimeout(() => ct.inc(value), 2000);
+});
+
+/*
+    calculation(subscriptions, calculationFunction)
+    Derive values off of your state. calculationFunction will receive the subscription values, and 
+    can only rely on those for its calculation.
+    The props that you map this to will be updated whenever the value of the calculation changes.
+*/
+const counterPlus = calculation(['state.counter'], counter => counter + 5);
+
+
+// Visual component
+// It's recommended you make your visual components the named export....
+const Counter = ({ counter, inc, dec, asyncInc, counterPlus, currentState }) => (
+    <div>
+        <div>Counter (default): {counter}</div>
+        <div>Counter (plus five): {counterPlus}</div>
+        <div>
+            <button onClick={e => inc(1)}>+</button>
+            <button onClick={e => dec(1)}>-</button>
+        </div>
+        <div>
+            <button onClick={e => asyncInc(5)}>Increase by 5 in 2 sec.</button>
+        </div>
+        <div>
+            <div>Current State:</div>
+            <div>{JSON.stringify(currentState, null, 2)}</div>
+        </div>
+    </div>
+);
+
+
+// Container component
+// ...and your container component the default export. Like that you can have visual - and container
+// component in one file, but still only import the visual component for testing purposes.
+const CounterContainer = connect(Counter, { counter, inc, dec, asyncInc, counterPlus, currentState });
+
+
+// Setup the store, just like you're used to from react-redux - with a <Provider/> component....
+const App = () => (
+    <Provider store={store}>
+        <CounterContainer/>
+    </Provider>
+);
+
+
+// Render it out....you know the drill :)
+ReactDOM.render(<App />, document.getElementById('root'));
+
 ```
