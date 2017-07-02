@@ -66,7 +66,7 @@ const store = createSlimReduxStore({todos:[]}, {
 });
 ```
 
-###Provider
+### Provider
 **Description:** The regular Provider component that you're used to from react-redux. This is actually just a convenience export, directly taken from react-redux, so you can easily provide a store instance to your app.
 
 **Example:**
