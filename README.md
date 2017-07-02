@@ -1,5 +1,5 @@
 # slim-redux-react 0.2 BETA
-[Discord server](https://discord.gg/skqwunW) | [Report bugs](https://github.com/aGuyNamedJonas/slim-redux-react)
+[Discord server](https://discord.gg/skqwunW) | [Report bugs](https://github.com/aGuyNamedJonas/slim-redux-react) | **End of beta phase**: Sun, 16th July 2017
 
 ![alt text](https://raw.githubusercontent.com/aGuyNamedJonas/slim-redux/master/logo/slim-redux-text-logo-dark.png "slim-redux-logo")
 
