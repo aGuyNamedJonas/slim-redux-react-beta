@@ -3,7 +3,10 @@ import ReactDOM from 'react-dom';
 
 import { createSlimReduxStore, connect, subscription, calculation, changeTrigger, asyncChangeTrigger, Provider } from 'slim-redux-react';
 
-const store = createSlimReduxStore({ counter: 1, stuff: 'state' });
+const store = createSlimReduxStore(
+    { counter: 1, stuff: 'state' }, 
+    { middleware: window.__REDUX_DEVTOOLS_EXTENSION__ && window.__REDUX_DEVTOOLS_EXTENSION__() }
+);
 
 
 /*
