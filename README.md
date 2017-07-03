@@ -1,11 +1,11 @@
 # slim-redux-react 0.2 BETA
 [Discord server](https://discord.gg/skqwunW) | [Report bugs](https://github.com/aGuyNamedJonas/slim-redux-react) | **End of beta phase**: Sun, 16th July 2017
 
-![alt text](https://raw.githubusercontent.com/aGuyNamedJonas/slim-redux/master/logo/slim-redux-text-logo-dark.png "slim-redux-logo")
+![alt text](https://raw.githubusercontent.com/aGuyNamedJonas/slim-redux/0.2-release/logo/slim-redux-logo-dark.png "slim-redux-logo")
 
 This is the official repository for the beta testing phase of `slim-redux-react 0.2 BETA` 🙌🏻  
 
-*The beta testing phase focuses on the react wrapper, but you're always free to play around with the standalone version of `slim-redux` ([instructions]())*
+*The beta testing phase focuses on the react wrapper, but you're always free to play around with the standalone version of `slim-redux` (**COMING SOON**)*
 
 ## Getting Started
 * Clone this repository
@@ -39,7 +39,9 @@ The basic ideas are as simple as redux itself:
 
 Read on for a detailled **description of the API**, or scroll down to the **example**.
 
-### API Reference (slim-redux-react)
+----
+
+## API Reference (slim-redux-react)
 
 ### createSlimReduxStore(initialState, options)
 **Description:** Creates and initializes the slim-redux store which is actually a redux store injected with some slim-redux functionality.
@@ -255,6 +257,8 @@ const App = () => (
 
 ReactDOM.render(<App />, document.getElementById('root'));
 ```
+
+----
 
 ### Simple Example
 This is actually just the `src/index.js` file that you also find in this repository. Imagine how slim this is without the comments though! ❤️
